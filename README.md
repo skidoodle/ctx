@@ -40,4 +40,3 @@ ctx -config
 
 ## License
 MIT
-```
