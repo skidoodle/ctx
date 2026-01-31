@@ -43,10 +43,11 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           ./ctx.exe .
-          $files = Get-Clipboard -Format FileDropList
-          if ($files) {
-            Write-Host "Clipboard contains: $files"
-            if ($files.Name -contains "ctx.txt") { exit 0 }
+          Add-Type -AssemblyName System.Windows.Forms
+          $files = [System.Windows.Forms.Clipboard]::GetFileDropList()
+          if ($files.Contains("$PWD\ctx.txt")) {
+            Write-Host "Success: Clipboard contains ctx.txt"
+            exit 0
           }
-          Write-Error "Clipboard did not contain ctx.txt"
+          Write-Error "Clipboard did not contain ctx.txt. Found: $files"
           exit 1
