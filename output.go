@@ -30,19 +30,19 @@ func writeOutput(root string, files []string, outputPath string) (count int64, e
 
 	tc := &TokenCounter{w: bw}
 
-	fmt.Fprintf(tc, "Project Path: %s\n\n", filepath.Base(root))
-	fmt.Fprintln(tc, "Source Tree:")
-	fmt.Fprintln(tc, "")
+	tc.Printf("Project Path: %s\n\n", filepath.Base(root))
+	tc.Println("Source Tree:")
+	tc.Println("")
 
-	fmt.Fprintln(tc, "```txt")
-	fmt.Fprintln(tc, filepath.Base(root))
+	tc.Println("```txt")
+	tc.Println(filepath.Base(root))
 
 	if err := writeTree(tc, files); err != nil {
 		return 0, err
 	}
 
-	fmt.Fprintln(tc, "```")
-	fmt.Fprintln(tc, "")
+	tc.Println("```")
+	tc.Println("")
 
 	for _, file := range files {
 		if file == outputPath || filepath.Base(file) == outputPath {
@@ -52,7 +52,7 @@ func writeOutput(root string, files []string, outputPath string) (count int64, e
 		fullPath := filepath.Join(root, file)
 		content, err := os.ReadFile(fullPath)
 		if err != nil {
-			fmt.Fprintf(tc, "Error reading %s: %v\n", file, err)
+			fmt.Fprintf(os.Stderr, "ctx: warning: skipping %s: %v\n", file, err)
 			continue
 		}
 
@@ -61,8 +61,8 @@ func writeOutput(root string, files []string, outputPath string) (count int64, e
 			ext = "txt"
 		}
 
-		fmt.Fprintf(tc, "`%s`:\n\n", file)
-		fmt.Fprintf(tc, "```%s\n", ext)
+		tc.Printf("`%s`:\n\n", file)
+		tc.Printf("```%s\n", ext)
 
 		if _, err := tc.Write(content); err != nil {
 			return 0, err
@@ -73,8 +73,8 @@ func writeOutput(root string, files []string, outputPath string) (count int64, e
 				return 0, err
 			}
 		}
-		fmt.Fprintln(tc, "```")
-		fmt.Fprintln(tc, "")
+		tc.Println("```")
+		tc.Println("")
 	}
 
 	return tc.Count, tc.Err

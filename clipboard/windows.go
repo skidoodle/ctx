@@ -62,11 +62,13 @@ func CopyFile(path string) error {
 		return fmt.Errorf("GlobalLock failed")
 	}
 
-	df := (*dropFiles)(unsafe.Pointer(ptrVal))
+	basePtr := unsafe.Pointer(ptrVal)
+
+	df := (*dropFiles)(basePtr)
 	df.pFiles = dropSize
 	df.fWide = 1
 
-	targetPtr := unsafe.Pointer(ptrVal + uintptr(dropSize))
+	targetPtr := unsafe.Add(basePtr, dropSize)
 
 	srcSlice := unsafe.Slice((*uint16)(unsafe.Pointer(&pathUTF16[0])), len(pathUTF16))
 	dstSlice := unsafe.Slice((*uint16)(targetPtr), len(pathUTF16))

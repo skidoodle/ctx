@@ -89,5 +89,12 @@ func (tc *TokenCounter) Printf(format string, a ...any) {
 	if tc.Err != nil {
 		return
 	}
-	fmt.Fprintf(tc, format, a...)
+	_, tc.Err = fmt.Fprintf(tc, format, a...)
+}
+
+func (tc *TokenCounter) Println(a ...any) {
+	if tc.Err != nil {
+		return
+	}
+	_, tc.Err = fmt.Fprintln(tc, a...)
 }
