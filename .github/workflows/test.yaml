@@ -1,0 +1,52 @@
+name: Test Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Enable CGO (Mac/Linux only)
+        if: matrix.os != 'windows-latest'
+        run: echo "CGO_ENABLED=1" >> $GITHUB_ENV
+
+      - name: Build
+        run: go build -v .
+
+      - name: Verify Clipboard (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update && sudo apt-get install -y xclip xvfb
+
+          xvfb-run sh -c '
+            ./ctx .
+            CLIP_CONTENT=$(xclip -selection clipboard -o -t text/uri-list)
+            echo "Clipboard contains: $CLIP_CONTENT"
+            echo "$CLIP_CONTENT" | grep "file://" || exit 1
+            echo "$CLIP_CONTENT" | grep "ctx.txt" || exit 1
+          '
+
+      - name: Verify Clipboard (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          ./ctx.exe .
+          $files = Get-Clipboard -Format FileDropList
+          if ($files) {
+            Write-Host "Clipboard contains: $files"
+            if ($files.Name -contains "ctx.txt") { exit 0 }
+          }
+          Write-Error "Clipboard did not contain ctx.txt"
+          exit 1

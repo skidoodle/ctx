@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/skidoodle/ctx/clipboard"
 )
 
 const defaultOutputFilename = "ctx.txt"
@@ -21,6 +23,7 @@ func run() error {
 	flag.Usage = usage
 	configFlag := flag.Bool("config", false, "open global ignore file for editing")
 	outputFlag := flag.String("o", defaultOutputFilename, "output filename")
+
 	flag.Parse()
 
 	if *configFlag {
@@ -62,6 +65,12 @@ func run() error {
 		return fmt.Errorf("writing output: %w", err)
 	}
 
+	if err := clipboard.CopyFile(*outputFlag); err != nil {
+		fmt.Fprintf(os.Stderr, "ctx: warning: clipboard copy failed: %v\n", err)
+	} else {
+		fmt.Printf("ctx: copied %s to clipboard\n", *outputFlag)
+	}
+
 	duration := time.Since(start).Round(time.Millisecond)
 	fmt.Printf("ctx: generated %s (%d files, ~%d tokens) in %v\n",
 		*outputFlag, len(files), tokenCount, duration)
@@ -75,7 +84,5 @@ func usage() {
 	fmt.Fprintf(os.Stderr, "  -config      Open global ignore file for editing\n")
 	fmt.Fprintf(os.Stderr, "  -o <file>    Output filename (default %q)\n", defaultOutputFilename)
 	fmt.Fprintf(os.Stderr, "\nExamples:\n")
-	fmt.Fprintf(os.Stderr, "  ctx .                  # Generate context for current dir\n")
-	fmt.Fprintf(os.Stderr, "  ctx -o out.txt src/    # Scan src/ and save to out.txt\n")
-	fmt.Fprintf(os.Stderr, "  ctx -config            # Open global ignore file\n")
+	fmt.Fprintf(os.Stderr, "  ctx .              # Generate and copy file\n")
 }
