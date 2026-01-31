@@ -13,10 +13,13 @@ int copyFileToPasteboard(char* path) {
         NSString *strPath = [NSString stringWithUTF8String:path];
         if (!strPath) return 0;
 
+        NSURL *url = [NSURL fileURLWithPath:strPath];
+        if (!url) return 0;
+
         NSPasteboard *pb = [NSPasteboard generalPasteboard];
         [pb clearContents];
-        [pb declareTypes:@[NSFilenamesPboardType] owner:nil];
-        return [pb setPropertyList:@[strPath] forType:NSFilenamesPboardType] ? 1 : 0;
+
+        return [pb writeObjects:@[url]] ? 1 : 0;
     }
 }
 */
